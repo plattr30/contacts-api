@@ -35,6 +35,11 @@ def read_root():
 @app.post("/contacts/", response_model=schemas.Contact, status_code=201)
 def create_contact(contact: schemas.ContactCreate, db: Session = Depends(get_db)):
     """Create a new contact"""
+    # Check if email already exists
+    existing_contact = db.query(models.Contact).filter(models.Contact.email == contact.email).first()
+    if existing_contact:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
     db_contact = models.Contact(**contact.model_dump())
     db.add(db_contact)
     db.commit()
